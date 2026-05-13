@@ -30,10 +30,12 @@ def handle_thread_reply(event, client):
 
     # ── Case 1: reply in a PUBLIC channel thread ────────────────────
     reporter = store.get_reporter(channel_id, thread_ts)
+    logger.debug("Lookup reporter for (%s, %s): %s", channel_id, thread_ts, reporter)
     if reporter:
         # Don't relay the reporter's own messages (shouldn't happen in
         # public channel since they're anonymous, but just in case)
         if user_id == reporter:
+            logger.debug("Not relaying reporter's own message in public thread")
             return
 
         dm_info = store.get_dm_info(reporter)
@@ -72,6 +74,7 @@ def handle_thread_reply(event, client):
 
     # ── Case 2: reply in a DM thread (reporter replying back) ──────
     public_thread = store.get_public_thread(channel_id, thread_ts)
+    logger.debug("Lookup public thread for DM (%s, %s): %s", channel_id, thread_ts, public_thread)
     if public_thread:
         pub_channel, pub_thread_ts = public_thread
 
@@ -85,3 +88,8 @@ def handle_thread_reply(event, client):
 
         logger.info("Relayed anonymous reply from reporter to public thread")
         return
+
+    logger.warning(
+        "Thread reply not matched to any report: channel=%s thread_ts=%s",
+        channel_id, thread_ts,
+    )

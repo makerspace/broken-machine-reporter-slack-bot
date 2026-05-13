@@ -35,16 +35,21 @@ def register_report_handlers(app: App):
 
     @app.event("message")
     def handle_dm(event, say, client):
+        logger.info("Received message event: %s", event)
+
         # Threaded replies go to the relay handler (works for both DMs and channels)
         if event.get("thread_ts") and event.get("thread_ts") != event.get("ts"):
+            logger.info("Routing to thread reply handler (thread_ts=%s)", event.get("thread_ts"))
             handle_thread_reply(event, client)
             return
 
         # Only respond to direct messages (im), ignore bot messages
         channel_id = event.get("channel")
         if event.get("channel_type") != "im":
+            logger.info("Ignoring non-DM message (channel_type=%s)", event.get("channel_type"))
             return
         if event.get("bot_id") or event.get("subtype"):
+            logger.info("Ignoring bot/subtype message (bot_id=%s, subtype=%s)", event.get("bot_id"), event.get("subtype"))
             return
 
         say(
