@@ -190,7 +190,7 @@ def register_report_handlers(app: App):
         dm_result = client.chat_postMessage(
             channel=reporter_user_id,
             text=(
-                f"✅ Tack! Din felanmälan har skickats anonymt till *{room_name}*.\n\n"
+                f"<@{reporter_user_id}> ✅ Tack! Din felanmälan har skickats anonymt till *{room_name}*.\n\n"
                 f"Om någon svarar i tråden kommer jag vidarebefordra svaret hit. "
                 f"Du kan svara tillbaka anonymt genom att svara i den här tråden."
             ),
