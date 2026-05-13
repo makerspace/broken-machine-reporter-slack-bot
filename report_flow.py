@@ -179,7 +179,7 @@ def register_report_handlers(app: App):
             return
 
         # Build the anonymous report message
-        report_blocks = _report_message_blocks(room_name, description)
+        report_blocks = _report_message_blocks(room_name, description, has_image=bool(files))
 
         # Post the anonymous report to the room channel
         result = client.chat_postMessage(
@@ -319,9 +319,9 @@ def _report_modal():
     }
 
 
-def _report_message_blocks(room_name: str, description: str):
+def _report_message_blocks(room_name: str, description: str, has_image: bool = False):
     """Build Block Kit blocks for the anonymous report posted to a channel."""
-    return [
+    blocks = [
         {
             "type": "header",
             "text": {
@@ -343,6 +343,16 @@ def _report_message_blocks(room_name: str, description: str):
                 "text": f"*Beskrivning:*\n{description}",
             },
         },
+    ]
+    if has_image:
+        blocks.append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "📷 *Bild i tråden* 🧵",
+            },
+        })
+    blocks.extend([
         {"type": "divider"},
         {
             "type": "context",
@@ -357,7 +367,8 @@ def _report_message_blocks(room_name: str, description: str):
                 }
             ],
         },
-    ]
+    ])
+    return blocks
 
 
 def _reupload_file_to_channel(client, file_info, channel_id, thread_ts):
