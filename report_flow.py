@@ -31,6 +31,12 @@ def _track_prompt(user_id: str, channel: str, ts: str):
         _prompt_messages.setdefault(user_id, []).append((channel, ts, time.time()))
 
 
+def _has_pending_prompt(user_id: str) -> bool:
+    """Check if a user already has an active prompt."""
+    with _prompt_lock:
+        return bool(_prompt_messages.get(user_id))
+
+
 def _delete_prompts(client, user_id: str):
     """Delete all tracked prompt messages for a user."""
     with _prompt_lock:
@@ -86,6 +92,11 @@ def register_report_handlers(app: App):
 
         # Only trigger on the "messages" tab (DM view), not the "home" tab
         if tab != "messages":
+            return
+
+        # Don't send a new prompt if one is already pending
+        if _has_pending_prompt(user_id):
+            logger.info("Skipping prompt for %s — already has a pending prompt", user_id)
             return
 
         result = client.chat_postMessage(
