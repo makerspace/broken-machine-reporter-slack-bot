@@ -169,6 +169,7 @@ def _report_modal():
             "value": key,
         }
         for key, display_name in ROOM_DISPLAY_NAMES.items()
+        if ROOMS.get(key)
     ]
 
     return {
