@@ -6,6 +6,8 @@ Handlers for the report flow:
 """
 
 import logging
+import threading
+import time
 
 import requests
 from slack_bolt import App
@@ -16,22 +18,91 @@ from store import store
 
 logger = logging.getLogger(__name__)
 
+# Track prompt messages: user_id -> list of (channel, ts, created_at)
+_prompt_messages: dict[str, list[tuple[str, str, float]]] = {}
+_prompt_lock = threading.Lock()
+
+PROMPT_TIMEOUT_SECONDS = 30 * 60  # 30 minutes
+
+
+def _track_prompt(user_id: str, channel: str, ts: str):
+    """Track a prompt message so it can be deleted later."""
+    with _prompt_lock:
+        _prompt_messages.setdefault(user_id, []).append((channel, ts, time.time()))
+
+
+def _delete_prompts(client, user_id: str):
+    """Delete all tracked prompt messages for a user."""
+    with _prompt_lock:
+        messages = _prompt_messages.pop(user_id, [])
+    for channel, ts, _ in messages:
+        try:
+            client.chat_delete(channel=channel, ts=ts)
+        except Exception:
+            logger.debug("Could not delete prompt message %s in %s", ts, channel)
+
+
+def _start_cleanup_thread(app: App):
+    """Background thread that deletes stale prompt messages."""
+    def _cleanup_loop():
+        while True:
+            time.sleep(60)  # check every minute
+            now = time.time()
+            stale_users = []
+            with _prompt_lock:
+                for user_id, messages in _prompt_messages.items():
+                    if all(now - created > PROMPT_TIMEOUT_SECONDS for _, _, created in messages):
+                        stale_users.append(user_id)
+            for user_id in stale_users:
+                with _prompt_lock:
+                    messages = _prompt_messages.pop(user_id, [])
+                for channel, ts, _ in messages:
+                    try:
+                        app.client.chat_delete(channel=channel, ts=ts)
+                    except Exception:
+                        logger.debug("Could not delete stale prompt %s in %s", ts, channel)
+                logger.info("Cleaned up stale prompts for user %s", user_id)
+
+    t = threading.Thread(target=_cleanup_loop, daemon=True)
+    t.start()
+
 
 def register_report_handlers(app: App):
     """Register all report-flow handlers on the Slack Bolt app."""
+
+    _start_cleanup_thread(app)
 
     # ── 1. Entry point: user opens a DM (via QR deep link) ──────────────
     # The QR code links to: https://slack.com/app_redirect?app=<APP_ID>
     # which opens the bot's DM. The user sends any message (or clicks the
     # Home tab) and we respond with a prompt to start a report.
 
-    @app.event("app_mention")
-    def handle_mention(event, say):
-        say(
+    @app.event("app_home_opened")
+    def handle_app_home(event, client):
+        """User opened the bot's App Home / Messages tab — send the report prompt."""
+        user_id = event["user"]
+        tab = event.get("tab")
+        logger.info("app_home_opened: user=%s tab=%s", user_id, tab)
+
+        # Only trigger on the "messages" tab (DM view), not the "home" tab
+        if tab != "messages":
+            return
+
+        result = client.chat_postMessage(
+            channel=user_id,
             text="Hej! Vill du rapportera något trasigt? Klicka på knappen nedan.",
             blocks=_start_blocks(),
-            channel=event["channel"],
         )
+        _track_prompt(user_id, result["channel"], result["ts"])
+
+    @app.event("app_mention")
+    def handle_mention(event, client):
+        result = client.chat_postMessage(
+            channel=event["channel"],
+            text="Hej! Vill du rapportera något trasigt? Klicka på knappen nedan.",
+            blocks=_start_blocks(),
+        )
+        _track_prompt(event["user"], result["channel"], result["ts"])
 
     @app.event("message")
     def handle_dm(event, say, client):
@@ -52,17 +123,21 @@ def register_report_handlers(app: App):
             logger.info("Ignoring bot/subtype message (bot_id=%s, subtype=%s)", event.get("bot_id"), event.get("subtype"))
             return
 
-        say(
+        result = client.chat_postMessage(
+            channel=channel_id,
             text="Hej! Vill du rapportera något trasigt? Klicka på knappen nedan.",
             blocks=_start_blocks(),
-            channel=channel_id,
         )
+        _track_prompt(event["user"], result["channel"], result["ts"])
 
     # ── 2. "Report broken" button opens a modal ────────────────────────
 
     @app.action("open_report_modal")
     def handle_open_modal(ack, body, client):
         ack()
+        # Delete the prompt messages now that the user clicked the button
+        user_id = body["user"]["id"]
+        _delete_prompts(client, user_id)
         client.views_open(
             trigger_id=body["trigger_id"],
             view=_report_modal(),
