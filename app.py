@@ -26,5 +26,12 @@ register_report_handlers(app)
 
 if __name__ == "__main__":
     logger.info("Starting Stockholm Makerspace Broken Equipment Bot...")
+    # App ID is embedded in the app-level token: xapp-1-AXXXXX-...
+    parts = SLACK_APP_TOKEN.split("-")
+    app_id = parts[2] if len(parts) >= 3 else None
+    if app_id:
+        logger.info(f"Bot DM link: https://slack.com/app_redirect?app={app_id}")
+    else:
+        logger.warning("Could not determine app ID for DM link")
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
     handler.start()
