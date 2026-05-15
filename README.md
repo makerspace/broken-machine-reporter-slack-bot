@@ -1,16 +1,16 @@
-# Stockholm Makerspace — Felanmälan Bot 🔧
+# Stockholm Makerspace — Broken Equipment Bot 🔧
 
 A Slack bot for anonymously reporting broken machines and tools at Stockholm Makerspace. Users scan a QR code, fill in a report, and the bot posts it anonymously to the relevant room channel. Two-way anonymous communication is supported via thread replies.
 
 ## How it works
 
 1. **User scans a QR code** → opens the bot's DM in Slack
-2. **Bot immediately prompts** the user with a "Rapportera trasigt" button (via the `app_home_opened` event)
+2. **Bot immediately prompts** the user with a "Report broken equipment" button (via the `app_home_opened` event)
 3. **User clicks the button** → a modal opens with:
    - A dropdown to select which room the broken thing is in
    - A text field to describe the problem
    - An optional image upload (up to 3 files)
-4. **Bot posts the report anonymously** to the selected room's Slack channel (with a "Bild i tråden 🧵" note if images were attached)
+4. **Bot posts the report anonymously** to the selected room's Slack channel (with an "Image in thread 🧵" note if images were attached)
 5. **Thread replies are relayed**: anyone replying in the public thread gets their message forwarded privately to the anonymous reporter (with a mention so they get notified)
 6. **Reporter can reply back** in their DM thread, and the bot relays it anonymously to the public thread
 7. **Prompt cleanup**: the bot deletes its prompt messages after the user clicks the button, and stale prompts are automatically cleaned up after 30 minutes
@@ -20,7 +20,7 @@ A Slack bot for anonymously reporting broken machines and tools at Stockholm Mak
 ### 1. Create a Slack App
 
 1. Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From scratch**
-2. Name it something like `Felanmälan Bot`
+2. Name it something like `Broken Equipment Bot`
 
 ### 2. Configure Permissions
 
@@ -109,13 +109,13 @@ Print and place QR codes near machines/rooms at the makerspace.
 ## Architecture
 
 ```
-app.py          — Entry point, starts Socket Mode
-config.py       — Environment config, loads rooms.yaml
-setup.py        — Interactive wizard for configuring rooms
-rooms.yaml      — Room→channel mapping (edited via setup.py)
-store.py        — JSON-backed persistent store for report↔reporter mappings
-report_flow.py  — Report modal, submission, anonymous posting, prompt cleanup
-relay.py        — Two-way message relay between threads and DMs
+app.py              — Entry point, starts Socket Mode
+src/config.py       — Environment config, loads rooms.yaml
+src/store.py        — JSON-backed persistent store for report↔reporter mappings
+src/report_flow.py  — Report modal, submission, anonymous posting, prompt cleanup
+src/relay.py        — Two-way message relay between threads and DMs
+setup.py            — Interactive wizard for configuring rooms
+rooms.yaml          — Room→channel mapping (edited via setup.py)
 ```
 
 ## Adding / Removing Rooms
@@ -130,9 +130,9 @@ Or edit `rooms.yaml` directly:
 
 ```yaml
 rooms:
-  - name: "Elektronikrummet"
+  - name: "Electronics Room"
     channel_id: "C017ZQEHK7Z"
-  - name: "Trärummet"
+  - name: "Woodworking Room"
     channel_id: "C0123456789"
 ```
 

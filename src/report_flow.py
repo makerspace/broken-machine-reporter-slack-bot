@@ -109,7 +109,7 @@ def register_report_handlers(app: App):
 
         result = client.chat_postMessage(
             channel=user_id,
-            text="Hej! Vill du rapportera något trasigt? Klicka på knappen nedan.",
+            text="Hi! Want to report something broken? Click the button below.",
             blocks=_start_blocks(),
         )
         _track_prompt(user_id, result["channel"], result["ts"])
@@ -118,7 +118,7 @@ def register_report_handlers(app: App):
     def handle_mention(event, client):
         result = client.chat_postMessage(
             channel=event["channel"],
-            text="Hej! Vill du rapportera något trasigt? Klicka på knappen nedan.",
+            text="Hi! Want to report something broken? Click the button below.",
             blocks=_start_blocks(),
         )
         _track_prompt(event["user"], result["channel"], result["ts"])
@@ -152,7 +152,7 @@ def register_report_handlers(app: App):
 
         result = client.chat_postMessage(
             channel=channel_id,
-            text="Hej! Vill du rapportera något trasigt? Klicka på knappen nedan.",
+            text="Hi! Want to report something broken? Click the button below.",
             blocks=_start_blocks(),
         )
         _track_prompt(event["user"], result["channel"], result["ts"])
@@ -190,7 +190,7 @@ def register_report_handlers(app: App):
         if not channel_id:
             client.chat_postMessage(
                 channel=reporter_user_id,
-                text=f"❌ Kanalen för {room_name} är inte konfigurerad. Kontakta en admin.",
+                text=f"❌ The channel for {room_name} is not configured. Contact an admin.",
             )
             return
 
@@ -202,7 +202,7 @@ def register_report_handlers(app: App):
         # Post the anonymous report to the room channel
         result = client.chat_postMessage(
             channel=channel_id,
-            text=f"🔧 Felanmälan i {room_name}: {description}",
+            text=f"🔧 Broken equipment report in {room_name}: {description}",
             blocks=report_blocks,
             unfurl_links=False,
         )
@@ -219,9 +219,9 @@ def register_report_handlers(app: App):
         dm_result = client.chat_postMessage(
             channel=reporter_user_id,
             text=(
-                f"<@{reporter_user_id}> ✅ Tack! Din felanmälan har skickats anonymt till *{room_name}*.\n\n"
-                f"Om någon svarar i tråden kommer jag vidarebefordra svaret hit. "
-                f"Du kan svara tillbaka anonymt genom att svara i den här tråden."
+                f"<@{reporter_user_id}> ✅ Thanks! Your report has been sent anonymously to *{room_name}*."
+                f"\n\nIf someone replies in the thread, I'll forward the reply here. "
+                f"You can reply back anonymously by responding in this thread."
             ),
         )
 
@@ -250,9 +250,9 @@ def _start_blocks():
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    "👋 *Hej! Välkommen till felanmälan på Stockholm Makerspace.*\n\n"
-                    "Har du hittat en trasig maskin eller verktyg? "
-                    "Klicka på knappen nedan för att rapportera det anonymt."
+                    "👋 *Hi! Welcome to the broken equipment reporter at Stockholm Makerspace.*\n\n"
+                    "Found a broken machine or tool? "
+                    "Click the button below to report it anonymously."
                 ),
             },
         },
@@ -263,7 +263,7 @@ def _start_blocks():
                     "type": "button",
                     "text": {
                         "type": "plain_text",
-                        "text": "🔧 Rapportera trasigt",
+                        "text": "🔧 Report broken equipment",
                         "emoji": True,
                     },
                     "action_id": "open_report_modal",
@@ -288,47 +288,47 @@ def _report_modal():
     return {
         "type": "modal",
         "callback_id": "report_modal_submit",
-        "title": {"type": "plain_text", "text": "Felanmälan"},
-        "submit": {"type": "plain_text", "text": "Skicka"},
-        "close": {"type": "plain_text", "text": "Avbryt"},
+        "title": {"type": "plain_text", "text": "Report broken equipment"},
+        "submit": {"type": "plain_text", "text": "Submit"},
+        "close": {"type": "plain_text", "text": "Cancel"},
         "blocks": [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "Fyll i information om vad som är trasigt. Din rapport skickas anonymt.",
+                    "text": "Fill in the details about what's broken. Your report will be sent anonymously.",
                 },
             },
             {"type": "divider"},
             {
                 "type": "input",
                 "block_id": "room_select",
-                "label": {"type": "plain_text", "text": "Vilket rum?"},
+                "label": {"type": "plain_text", "text": "Which room?"},
                 "element": {
                     "type": "static_select",
                     "action_id": "room_choice",
-                    "placeholder": {"type": "plain_text", "text": "Välj rum..."},
+                    "placeholder": {"type": "plain_text", "text": "Select room..."},
                     "options": room_options,
                 },
             },
             {
                 "type": "input",
                 "block_id": "description_block",
-                "label": {"type": "plain_text", "text": "Vad är trasigt?"},
+                "label": {"type": "plain_text", "text": "What's broken?"},
                 "element": {
                     "type": "plain_text_input",
                     "action_id": "description_input",
                     "multiline": True,
                     "placeholder": {
                         "type": "plain_text",
-                        "text": "Beskriv problemet, t.ex. vilken maskin/verktyg och vad som hänt...",
+                        "text": "Describe the problem, e.g. which machine/tool and what happened...",
                     },
                 },
             },
             {
                 "type": "input",
                 "block_id": "image_block",
-                "label": {"type": "plain_text", "text": "Bifoga bild (valfritt)"},
+                "label": {"type": "plain_text", "text": "Attach image (optional)"},
                 "optional": True,
                 "element": {
                     "type": "file_input",
@@ -348,21 +348,21 @@ def _report_message_blocks(room_name: str, description: str, has_image: bool = F
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "🔧 Felanmälan",
+                "text": "🔧 Broken Equipment Report",
                 "emoji": True,
             },
         },
         {
             "type": "section",
             "fields": [
-                {"type": "mrkdwn", "text": f"*Rum:*\n{room_name}"},
+                {"type": "mrkdwn", "text": f"*Room:*\n{room_name}"},
             ],
         },
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*Beskrivning:*\n{description}",
+                "text": f"*Description:*\n{description}",
             },
         },
     ]
@@ -371,7 +371,7 @@ def _report_message_blocks(room_name: str, description: str, has_image: bool = F
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "📷 *Bild i tråden* 🧵",
+                "text": "📷 *Image in thread* 🧵",
             },
         })
     blocks.extend([
@@ -382,9 +382,9 @@ def _report_message_blocks(room_name: str, description: str, has_image: bool = F
                 {
                     "type": "mrkdwn",
                     "text": (
-                        "📌 Denna felanmälan skickades anonymt. "
-                        "Svara i tråden om du har frågor — svaret vidarebefordras till den som rapporterade. "
-                        "Var vänlig och konstruktiv! 🙏"
+                        "📌 This report was sent anonymously. "
+                        "Reply in the thread if you have questions — your reply will be forwarded to the reporter. "
+                        "Please be kind and constructive! 🙏"
                     ),
                 }
             ],
@@ -414,10 +414,10 @@ def _reupload_file_to_channel(client, file_info, channel_id, thread_ts):
                 {
                     "content": resp.content,
                     "filename": file_info.get("name", "image.jpg"),
-                    "title": file_info.get("title", "Bifogad bild"),
+                    "title": file_info.get("title", "Attached image"),
                 }
             ],
-            initial_comment="📷 Bifogad bild från felanmälan:",
+            initial_comment="📷 Attached image from report:",
         )
     except Exception:
         logger.exception("Failed to re-upload file to channel %s", channel_id)

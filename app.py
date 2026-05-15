@@ -25,6 +25,6 @@ app = App(token=SLACK_BOT_TOKEN)
 register_report_handlers(app)
 
 if __name__ == "__main__":
-    logger.info("⚡ Starting Stockholm Makerspace Felanmälan Bot...")
+    logger.info("Starting Stockholm Makerspace Broken Equipment Bot...")
     handler = SocketModeHandler(app, SLACK_APP_TOKEN)
     handler.start()

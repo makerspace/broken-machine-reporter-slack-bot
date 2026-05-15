@@ -54,14 +54,14 @@ def handle_thread_reply(event, client):
                 or user_id
             )
         except Exception:
-            display_name = "Någon"
+            display_name = "Someone"
 
-        relay_text = f"💬 *{display_name}* svarade i tråden:\n\n{text}"
+        relay_text = f"<@{reporter}> 💬 *{display_name}* replied in the thread:\n\n{text}"
 
         # Forward any attached files
         files = event.get("files", [])
         if files:
-            relay_text += "\n\n_(meddelandet innehöll bifogade filer som inte kunde vidarebefordras)_"
+            relay_text += "\n\n_(the message contained attached files that could not be forwarded)_"
 
         client.chat_postMessage(
             channel=dm_channel,
@@ -80,7 +80,7 @@ def handle_thread_reply(event, client):
     if public_thread:
         pub_channel, pub_thread_ts = public_thread
 
-        relay_text = f"💬 *Anonym rapportör* svarade:\n\n{text}"
+        relay_text = f"💬 *Anonymous reporter* replied:\n\n{text}"
 
         client.chat_postMessage(
             channel=pub_channel,
