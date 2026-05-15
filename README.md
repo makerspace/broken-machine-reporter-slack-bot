@@ -4,14 +4,16 @@ A Slack bot for anonymously reporting broken machines and tools at Stockholm Mak
 
 ## How it works
 
-1. **User scans a QR code** → opens a DM with the bot in Slack
-2. **User clicks "Rapportera trasigt"** → a modal opens with:
+1. **User scans a QR code** → opens the bot's DM in Slack
+2. **Bot immediately prompts** the user with a "Rapportera trasigt" button (via the `app_home_opened` event)
+3. **User clicks the button** → a modal opens with:
    - A dropdown to select which room the broken thing is in
    - A text field to describe the problem
-   - An optional image upload
-3. **Bot posts the report anonymously** to the selected room's Slack channel
-4. **Thread replies are relayed**: anyone replying in the public thread gets their message forwarded privately to the anonymous reporter
-5. **Reporter can reply back** in their DM thread, and the bot relays it anonymously to the public thread
+   - An optional image upload (up to 3 files)
+4. **Bot posts the report anonymously** to the selected room's Slack channel (with a "Bild i tråden 🧵" note if images were attached)
+5. **Thread replies are relayed**: anyone replying in the public thread gets their message forwarded privately to the anonymous reporter (with a mention so they get notified)
+6. **Reporter can reply back** in their DM thread, and the bot relays it anonymously to the public thread
+7. **Prompt cleanup**: the bot deletes its prompt messages after the user clicks the button, and stale prompts are automatically cleaned up after 30 minutes
 
 ## Setup
 
@@ -24,7 +26,10 @@ A Slack bot for anonymously reporting broken machines and tools at Stockholm Mak
 
 Under **OAuth & Permissions → Bot Token Scopes**, add:
 
-- `chat:write` — post messages
+- `chat:write` — post and delete messages
+- `channels:join` — auto-join configured channels
+- `channels:history` — receive public channel messages
+- `groups:history` — receive private channel messages
 - `im:history` — read DM messages
 - `im:write` — send DMs
 - `files:read` — read uploaded files
@@ -40,19 +45,22 @@ Under **OAuth & Permissions → Bot Token Scopes**, add:
 
 Under **Event Subscriptions → Subscribe to bot events**, add:
 
+- `app_home_opened` — triggers the report prompt when a user opens the bot
 - `message.im` — DM messages
 - `message.channels` — public channel messages (for thread replies)
+- `message.groups` — private channel messages (for thread replies)
 - `app_mention` — mentions of the bot
 
-### 5. Enable Interactivity
+### 5. Enable Interactivity & App Home
 
-Under **Interactivity & Shortcuts**, toggle **Interactivity** on (Socket Mode handles the URL automatically).
+1. Under **Interactivity & Shortcuts**, toggle **Interactivity** on (Socket Mode handles the URL automatically)
+2. Under **App Home → Show Tabs**, enable the **Messages Tab** and check **"Allow users to send Slash commands and messages from the messages tab"**
 
 ### 6. Install the App
 
 1. Go to **Install App** → **Install to Workspace**
 2. Copy the **Bot User OAuth Token** (`xoxb-...`) — save as `SLACK_BOT_TOKEN`
-3. **Invite the bot** to each room channel (e.g. `/invite @Felanmälan Bot` in each channel)
+3. **Invite the bot** to each room channel (`/invite @Felanmälan Bot` in each channel)
 
 ### 7. Configure Environment
 
@@ -65,10 +73,10 @@ Edit `.env` with your tokens and channel IDs. Find channel IDs by right-clicking
 ### 8. Install & Run
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-python app.py
+python3 app.py
 ```
 
 ## QR Code Setup
@@ -88,8 +96,8 @@ Print and place QR codes near machines/rooms at the makerspace.
 ```
 app.py          — Entry point, starts Socket Mode
 config.py       — Environment config, room→channel mapping
-store.py        — In-memory store for report↔reporter mappings
-report_flow.py  — Report modal, submission, anonymous posting
+store.py        — JSON-backed persistent store for report↔reporter mappings
+report_flow.py  — Report modal, submission, anonymous posting, prompt cleanup
 relay.py        — Two-way message relay between threads and DMs
 ```
 
@@ -102,6 +110,8 @@ relay.py        — Two-way message relay between threads and DMs
 
 ## Notes
 
-- Reports are stored **in memory only** — restarting the bot clears the mappings (existing threads will no longer relay). For persistence, swap `store.py` for a database-backed implementation.
+- Report mappings are **persisted to `report_store.json`** so thread relay continues working across bot restarts.
 - The reporter's identity is **never revealed** in public channels.
 - File re-uploads ensure images appear from the bot, not the reporter.
+- Prompt messages are cleaned up automatically (on button click, or after 30 minutes if unused).
+- Duplicate prompts are avoided: if a pending prompt exists, `app_home_opened` won't create another.
