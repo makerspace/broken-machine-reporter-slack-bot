@@ -134,7 +134,9 @@ def add_room(client, rooms):
     for i, ch in enumerate(available, 1):
         print(f"  {i:3}. #{ch['name']}  ({ch['id']})")
 
-    selection = input("\nSelect channel number(s) (comma-separated, or 'q' to cancel): ").strip()
+    selection = input(
+        "\nSelect channel number(s) (comma-separated, or 'q' to cancel): "
+    ).strip()
     if selection.lower() == "q":
         return rooms
 

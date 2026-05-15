@@ -50,6 +50,7 @@ def _delete_prompts(client, user_id: str):
 
 def _start_cleanup_thread(app: App):
     """Background thread that deletes stale prompt messages."""
+
     def _cleanup_loop():
         while True:
             time.sleep(60)  # check every minute
@@ -57,7 +58,10 @@ def _start_cleanup_thread(app: App):
             stale_users = []
             with _prompt_lock:
                 for user_id, messages in _prompt_messages.items():
-                    if all(now - created > PROMPT_TIMEOUT_SECONDS for _, _, created in messages):
+                    if all(
+                        now - created > PROMPT_TIMEOUT_SECONDS
+                        for _, _, created in messages
+                    ):
                         stale_users.append(user_id)
             for user_id in stale_users:
                 with _prompt_lock:
@@ -66,7 +70,9 @@ def _start_cleanup_thread(app: App):
                     try:
                         app.client.chat_delete(channel=channel, ts=ts)
                     except Exception:
-                        logger.debug("Could not delete stale prompt %s in %s", ts, channel)
+                        logger.debug(
+                            "Could not delete stale prompt %s in %s", ts, channel
+                        )
                 logger.info("Cleaned up stale prompts for user %s", user_id)
 
     t = threading.Thread(target=_cleanup_loop, daemon=True)
@@ -96,7 +102,9 @@ def register_report_handlers(app: App):
 
         # Don't send a new prompt if one is already pending
         if _has_pending_prompt(user_id):
-            logger.info("Skipping prompt for %s — already has a pending prompt", user_id)
+            logger.info(
+                "Skipping prompt for %s — already has a pending prompt", user_id
+            )
             return
 
         result = client.chat_postMessage(
@@ -121,17 +129,25 @@ def register_report_handlers(app: App):
 
         # Threaded replies go to the relay handler (works for both DMs and channels)
         if event.get("thread_ts") and event.get("thread_ts") != event.get("ts"):
-            logger.info("Routing to thread reply handler (thread_ts=%s)", event.get("thread_ts"))
+            logger.info(
+                "Routing to thread reply handler (thread_ts=%s)", event.get("thread_ts")
+            )
             handle_thread_reply(event, client)
             return
 
         # Only respond to direct messages (im), ignore bot messages
         channel_id = event.get("channel")
         if event.get("channel_type") != "im":
-            logger.info("Ignoring non-DM message (channel_type=%s)", event.get("channel_type"))
+            logger.info(
+                "Ignoring non-DM message (channel_type=%s)", event.get("channel_type")
+            )
             return
         if event.get("bot_id") or event.get("subtype"):
-            logger.info("Ignoring bot/subtype message (bot_id=%s, subtype=%s)", event.get("bot_id"), event.get("subtype"))
+            logger.info(
+                "Ignoring bot/subtype message (bot_id=%s, subtype=%s)",
+                event.get("bot_id"),
+                event.get("subtype"),
+            )
             return
 
         result = client.chat_postMessage(
@@ -179,7 +195,9 @@ def register_report_handlers(app: App):
             return
 
         # Build the anonymous report message
-        report_blocks = _report_message_blocks(room_name, description, has_image=bool(files))
+        report_blocks = _report_message_blocks(
+            room_name, description, has_image=bool(files)
+        )
 
         # Post the anonymous report to the room channel
         result = client.chat_postMessage(
@@ -243,7 +261,11 @@ def _start_blocks():
             "elements": [
                 {
                     "type": "button",
-                    "text": {"type": "plain_text", "text": "🔧 Rapportera trasigt", "emoji": True},
+                    "text": {
+                        "type": "plain_text",
+                        "text": "🔧 Rapportera trasigt",
+                        "emoji": True,
+                    },
                     "action_id": "open_report_modal",
                     "style": "danger",
                 }

@@ -74,7 +74,9 @@ def handle_thread_reply(event, client):
 
     # ── Case 2: reply in a DM thread (reporter replying back) ──────
     public_thread = store.get_public_thread(channel_id, thread_ts)
-    logger.debug("Lookup public thread for DM (%s, %s): %s", channel_id, thread_ts, public_thread)
+    logger.debug(
+        "Lookup public thread for DM (%s, %s): %s", channel_id, thread_ts, public_thread
+    )
     if public_thread:
         pub_channel, pub_thread_ts = public_thread
 
@@ -91,5 +93,6 @@ def handle_thread_reply(event, client):
 
     logger.warning(
         "Thread reply not matched to any report: channel=%s thread_ts=%s",
-        channel_id, thread_ts,
+        channel_id,
+        thread_ts,
     )

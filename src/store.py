@@ -83,7 +83,9 @@ class ReportStore:
         with self._lock:
             return self._thread_to_reporter.get((channel_id, thread_ts))
 
-    def get_public_thread(self, dm_channel_id: str, dm_thread_ts: str) -> tuple[str, str] | None:
+    def get_public_thread(
+        self, dm_channel_id: str, dm_thread_ts: str
+    ) -> tuple[str, str] | None:
         """Get the (channel_id, thread_ts) for a DM thread."""
         with self._lock:
             return self._dm_to_thread.get((dm_channel_id, dm_thread_ts))
