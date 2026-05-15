@@ -13,9 +13,8 @@ A Slack bot for anonymously reporting broken machines and tools at Stockholm Mak
 4. **Bot posts the report anonymously** to the selected room's Slack channel (with an "Image in thread 🧵" note if images were attached)
 5. **Thread replies are relayed**: anyone replying in the public thread gets their message forwarded privately to the anonymous reporter (with a mention so they get notified)
 6. **Reporter can reply back** in their DM thread, and the bot relays it anonymously to the public thread
-7. **Prompt cleanup**: the bot deletes its prompt messages after the user clicks the button, and stale prompts are automatically cleaned up after 30 minutes
 
-## Setup
+## Configure the Slack app
 
 ### 1. Create a Slack App
 
@@ -62,15 +61,7 @@ Under **Event Subscriptions → Subscribe to bot events**, add:
 1. Go to **Install App** → **Install to Workspace**
 2. Copy the **Bot User OAuth Token** (`xoxb-...`) — save as `SLACK_BOT_TOKEN`
 
-### 7. Configure Environment
-
-```bash
-cp .env.example .envrc
-```
-
-Edit `.envrc` with your Slack tokens.
-
-### 8. Install & Run
+## Install & Run
 
 ```bash
 python -m venv venv
@@ -78,7 +69,16 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 9. Configure Rooms
+### Configure Environment
+
+```bash
+cp .env.example .envrc
+```
+
+Edit `.envrc` with your Slack tokens.
+
+
+### Configure Rooms
 
 Run the interactive setup wizard to select which Slack channels map to rooms:
 
@@ -87,44 +87,6 @@ python3 setup.py
 ```
 
 The wizard connects to your workspace, lists all channels, and lets you pick which ones to use. Room configuration is saved to `rooms.yaml`. You can re-run it anytime to add or remove rooms.
-
-### 10. Start the Bot
-
-```bash
-python3 app.py
-```
-
-## QR Code Setup
-
-Generate a QR code that links to:
-
-```
-https://slack.com/app_redirect?app=YOUR_APP_ID
-```
-
-Replace `YOUR_APP_ID` with your Slack app's ID (found under **Basic Information** in your app settings). When scanned on a phone with Slack installed, this opens a DM with the bot.
-
-Print and place QR codes near machines/rooms at the makerspace.
-
-## Architecture
-
-```
-app.py              — Entry point, starts Socket Mode
-src/config.py       — Environment config, loads rooms.yaml
-src/store.py        — JSON-backed persistent store for report↔reporter mappings
-src/report_flow.py  — Report modal, submission, anonymous posting, prompt cleanup
-src/relay.py        — Two-way message relay between threads and DMs
-setup.py            — Interactive wizard for configuring rooms
-rooms.yaml          — Room→channel mapping (edited via setup.py)
-```
-
-## Adding / Removing Rooms
-
-Run the setup wizard:
-
-```bash
-python3 setup.py
-```
 
 Or edit `rooms.yaml` directly:
 
@@ -136,15 +98,14 @@ rooms:
     channel_id: "C0123456789"
 ```
 
-Restart the bot after changing rooms.
+> [!NOTE]
+> You have to restart the bot after changing the `rooms.yaml` file.
 
-## Notes
+### Start the Bot
 
-- Report mappings are **persisted to `report_store.json`** so thread relay continues working across bot restarts.
-- The reporter's identity is **never revealed** in public channels.
-- File re-uploads ensure images appear from the bot, not the reporter.
-- Prompt messages are cleaned up automatically (on button click, or after 30 minutes if unused).
-- Duplicate prompts are avoided: if a pending prompt exists, `app_home_opened` won't create another.
+```bash
+python3 app.py
+```
 
 ## Future ideas
 
