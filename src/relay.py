@@ -7,7 +7,7 @@ Message relay system for anonymous two-way communication.
 
 import logging
 
-from store import store
+from src.store import store
 
 logger = logging.getLogger(__name__)
 

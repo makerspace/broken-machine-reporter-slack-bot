@@ -9,7 +9,8 @@ SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
 
 # Load room configuration from rooms.yaml
-_ROOMS_FILE = os.path.join(os.path.dirname(__file__), "rooms.yaml")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+_ROOMS_FILE = os.path.join(_PROJECT_ROOT, "rooms.yaml")
 
 
 def _load_rooms_yaml():

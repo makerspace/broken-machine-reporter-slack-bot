@@ -10,7 +10,8 @@ import json
 import os
 import threading
 
-STORE_FILE = os.path.join(os.path.dirname(__file__), "report_store.json")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+STORE_FILE = os.path.join(_PROJECT_ROOT, "report_store.json")
 
 
 class ReportStore:

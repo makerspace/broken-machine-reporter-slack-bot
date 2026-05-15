@@ -12,9 +12,9 @@ import time
 import requests
 from slack_bolt import App
 
-from config import ROOM_DISPLAY_NAMES, ROOMS, SLACK_BOT_TOKEN
-from relay import handle_thread_reply
-from store import store
+from src.config import ROOM_DISPLAY_NAMES, ROOMS, SLACK_BOT_TOKEN
+from src.relay import handle_thread_reply
+from src.store import store
 
 logger = logging.getLogger(__name__)
 

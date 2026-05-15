@@ -10,8 +10,8 @@ import logging
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
-from config import SLACK_APP_TOKEN, SLACK_BOT_TOKEN
-from report_flow import register_report_handlers
+from src.config import SLACK_APP_TOKEN, SLACK_BOT_TOKEN
+from src.report_flow import register_report_handlers
 
 logging.basicConfig(
     level=logging.INFO,
