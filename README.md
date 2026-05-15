@@ -28,6 +28,7 @@ Under **OAuth & Permissions → Bot Token Scopes**, add:
 
 - `chat:write` — post and delete messages
 - `channels:join` — auto-join configured channels
+- `channels:read` — list workspace channels (for setup wizard)
 - `channels:history` — receive public channel messages
 - `groups:history` — receive private channel messages
 - `im:history` — read DM messages
@@ -60,7 +61,6 @@ Under **Event Subscriptions → Subscribe to bot events**, add:
 
 1. Go to **Install App** → **Install to Workspace**
 2. Copy the **Bot User OAuth Token** (`xoxb-...`) — save as `SLACK_BOT_TOKEN`
-3. **Invite the bot** to each room channel (`/invite @Felanmälan Bot` in each channel)
 
 ### 7. Configure Environment
 
@@ -68,7 +68,7 @@ Under **Event Subscriptions → Subscribe to bot events**, add:
 cp .env.example .env
 ```
 
-Edit `.env` with your tokens and channel IDs. Find channel IDs by right-clicking a channel → **View channel details** → scroll to the bottom.
+Edit `.env` with your Slack tokens.
 
 ### 8. Install & Run
 
@@ -76,6 +76,21 @@ Edit `.env` with your tokens and channel IDs. Find channel IDs by right-clicking
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+
+### 9. Configure Rooms
+
+Run the interactive setup wizard to select which Slack channels map to rooms:
+
+```bash
+python3 setup.py
+```
+
+The wizard connects to your workspace, lists all channels, and lets you pick which ones to use. Room configuration is saved to `rooms.yaml`. You can re-run it anytime to add or remove rooms.
+
+### 10. Start the Bot
+
+```bash
 python3 app.py
 ```
 
@@ -95,18 +110,33 @@ Print and place QR codes near machines/rooms at the makerspace.
 
 ```
 app.py          — Entry point, starts Socket Mode
-config.py       — Environment config, room→channel mapping
+config.py       — Environment config, loads rooms.yaml
+setup.py        — Interactive wizard for configuring rooms
+rooms.yaml      — Room→channel mapping (edited via setup.py)
 store.py        — JSON-backed persistent store for report↔reporter mappings
 report_flow.py  — Report modal, submission, anonymous posting, prompt cleanup
 relay.py        — Two-way message relay between threads and DMs
 ```
 
-## Adding Rooms
+## Adding / Removing Rooms
 
-1. Create the Slack channel for the room
-2. Invite the bot to the channel
-3. Add the channel ID to `.env` (e.g. `CHANNEL_NYTT_RUM=C0123456789`)
-4. Add the room to `ROOMS` and `ROOM_DISPLAY_NAMES` in `config.py`
+Run the setup wizard:
+
+```bash
+python3 setup.py
+```
+
+Or edit `rooms.yaml` directly:
+
+```yaml
+rooms:
+  - name: "Elektronikrummet"
+    channel_id: "C017ZQEHK7Z"
+  - name: "Trärummet"
+    channel_id: "C0123456789"
+```
+
+Restart the bot after changing rooms.
 
 ## Notes
 
