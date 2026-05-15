@@ -115,3 +115,9 @@ relay.py        — Two-way message relay between threads and DMs
 - File re-uploads ensure images appear from the bot, not the reporter.
 - Prompt messages are cleaned up automatically (on button click, or after 30 minutes if unused).
 - Duplicate prompts are avoided: if a pending prompt exists, `app_home_opened` won't create another.
+
+## Future ideas
+
+- Collect feedback/ideas
+- Store the collection of all reported things
+- Let people view and vote on what they think is important
