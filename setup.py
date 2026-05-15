@@ -75,7 +75,7 @@ def wizard():
     """Run the interactive setup wizard."""
     token = os.environ.get("SLACK_BOT_TOKEN")
     if not token:
-        print("❌ SLACK_BOT_TOKEN not set. Configure it in your .envrc or .env first.")
+        print("❌ SLACK_BOT_TOKEN not set. Configure it in your .envrc file first.")
         sys.exit(1)
 
     client = WebClient(token=token)

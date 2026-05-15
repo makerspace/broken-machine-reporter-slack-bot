@@ -65,10 +65,10 @@ Under **Event Subscriptions → Subscribe to bot events**, add:
 ### 7. Configure Environment
 
 ```bash
-cp .env.example .env
+cp .env.example .envrc
 ```
 
-Edit `.env` with your Slack tokens.
+Edit `.envrc` with your Slack tokens.
 
 ### 8. Install & Run
 
